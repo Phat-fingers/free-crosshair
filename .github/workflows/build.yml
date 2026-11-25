@@ -3,8 +3,6 @@ name: Build
 on:
   push:
     branches: [main]
-  release:
-    types: [published]
   pull_request:
   workflow_dispatch:
 
@@ -40,7 +38,7 @@ jobs:
           if ($p.ExitCode -ne 0) { throw "overlay screenshot test failed ($($p.ExitCode))" }
 
       - name: Print test pictures to log (base64)
-        if: always() && github.event_name != 'release'
+        if: always()
         shell: pwsh
         run: |
           foreach ($f in 'settings-window.png', 'on-screen.png', '_contact-sheet.png') {
@@ -65,9 +63,17 @@ jobs:
           name: FreeCrosshair
           path: out/FreeCrosshair.exe
 
-      - name: Attach exe to release
-        if: github.event_name == 'release'
+      # Publishes a GitHub release when the <Version> in FreeCrosshair.csproj is new.
+      # To ship an update: bump the version, push to main.
+      - name: Publish release for new version
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" out/FreeCrosshair.exe --clobber -R "${{ github.repository }}"
+        run: |
+          $v = ([xml](Get-Content FreeCrosshair.csproj)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+          $tag = "v$v"
+          gh release view $tag -R "${{ github.repository }}" 2>$null
+          if ($LASTEXITCODE -eq 0) { Write-Output "Release $tag already exists - nothing to publish."; exit 0 }
+          gh release create $tag out/FreeCrosshair.exe -R "${{ github.repository }}" --target "${{ github.sha }}" `
+            --title "Free Crosshair $tag" --notes-file RELEASE_NOTES.md --latest
