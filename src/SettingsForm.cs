@@ -244,8 +244,7 @@ namespace FreeCrosshair
 
         Button SmallButton(string text, Action onClick, string tip)
         {
-            var b = new Button { Text = text, AutoSize = true, MinimumSize = new Size(10, 26), Height = 26, Margin = new Padding(0, 0, 3, 0), Padding = new Padding(2, 0, 2, 0) };
-            if (text.Length <= 6) { b.AutoSize = false; b.Width = 58; }
+            var b = new Button { Text = text, AutoSize = true, AutoSizeMode = AutoSizeMode.GrowAndShrink, MinimumSize = new Size(50, 26), Margin = new Padding(0, 0, 3, 0), Padding = new Padding(4, 0, 4, 0) };
             b.Click += (s, e) => onClick();
             if (tip != null) tips.SetToolTip(b, tip);
             return b;
