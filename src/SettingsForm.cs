@@ -149,7 +149,7 @@ namespace FreeCrosshair
             Row(left, "Image size %", imageScaleNum);
 
             // --- Position ---
-            Header(left, "Position & look");
+            Header(left, "Position && look");
             opacityNum = Num(5, 100, () => S.Opacity, v => S.Opacity = v);
             Row(left, "Opacity %", opacityNum);
             offXNum = Num(-2000, 2000, () => S.OffsetX, v => S.OffsetX = v);
@@ -244,7 +244,8 @@ namespace FreeCrosshair
 
         Button SmallButton(string text, Action onClick, string tip)
         {
-            var b = new Button { Text = text, AutoSize = true, Height = 26, Margin = new Padding(0, 0, 4, 0) };
+            var b = new Button { Text = text, AutoSize = true, MinimumSize = new Size(10, 26), Height = 26, Margin = new Padding(0, 0, 3, 0), Padding = new Padding(2, 0, 2, 0) };
+            if (text.Length <= 6) { b.AutoSize = false; b.Width = 58; }
             b.Click += (s, e) => onClick();
             if (tip != null) tips.SetToolTip(b, tip);
             return b;
