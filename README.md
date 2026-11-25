@@ -47,7 +47,7 @@ Needs the .NET SDK on Windows:
 dotnet build FreeCrosshair.csproj -c Release -o out
 ```
 
-Every push is built and tested by GitHub Actions. Pushing a tag like `v1.0.1` publishes a new release automatically.
+Every push is built and tested by GitHub Actions. Publishing a new release on GitHub (e.g. `v1.0.1`) builds the exe and attaches it automatically.
 
 ## License
 
