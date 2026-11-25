@@ -357,7 +357,7 @@ namespace FreeCrosshair
                     using (var cap = new Bitmap(2 * r, 2 * r, PixelFormat.Format32bppArgb))
                     {
                         using (var g = Graphics.FromImage(cap))
-                            g.CopyFromScreen(cx - r, cy - r, 0, 0, cap.Size, CopyPixelOperation.SourceCopy | CopyPixelOperation.CaptureBlt);
+                            g.CopyFromScreen(cx - r, cy - r, 0, 0, cap.Size, CopyPixelOperation.SourceCopy);
                         using (var big = new Bitmap(cap.Width * 6, cap.Height * 6))
                         {
                             using (var g = Graphics.FromImage(big))

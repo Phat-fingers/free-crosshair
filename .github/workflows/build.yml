@@ -38,6 +38,19 @@ jobs:
           $p = Start-Process out\FreeCrosshair.exe -ArgumentList '--screenshot-test', "$PWD\test-output\on-screen.png" -Wait -PassThru -NoNewWindow
           if ($p.ExitCode -ne 0) { throw "overlay screenshot test failed ($($p.ExitCode))" }
 
+      - name: Print test pictures to log (base64)
+        if: always() && !startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        run: |
+          foreach ($f in 'settings-window.png', 'on-screen.png', '_contact-sheet.png') {
+            $p = "test-output\$f"
+            if (Test-Path $p) {
+              Write-Output "BEGIN-B64 $f"
+              [Convert]::ToBase64String([IO.File]::ReadAllBytes($p)) -split '(.{4000})' | Where-Object { $_ } | ForEach-Object { Write-Output "B64:$_" }
+              Write-Output "END-B64 $f"
+            }
+          }
+
       - name: Upload test pictures
         if: always()
         uses: actions/upload-artifact@v4
