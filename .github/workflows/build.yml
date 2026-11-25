@@ -1,0 +1,62 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build
+        run: dotnet build FreeCrosshair.csproj -c Release -o out
+
+      - name: Self-test - draw every crosshair
+        shell: pwsh
+        run: |
+          $p = Start-Process out\FreeCrosshair.exe -ArgumentList '--render-test', "$PWD\test-output" -Wait -PassThru -NoNewWindow
+          if ($p.ExitCode -ne 0) { throw "render test failed ($($p.ExitCode))" }
+
+      - name: Self-test - settings window
+        shell: pwsh
+        run: |
+          $p = Start-Process out\FreeCrosshair.exe -ArgumentList '--settings-test', "$PWD\test-output\settings-window.png" -Wait -PassThru -NoNewWindow
+          if ($p.ExitCode -ne 0) { throw "settings test failed ($($p.ExitCode))" }
+
+      - name: Self-test - overlay shows on screen
+        shell: pwsh
+        continue-on-error: true # CI machines don't always have a real desktop to capture
+        run: |
+          $p = Start-Process out\FreeCrosshair.exe -ArgumentList '--screenshot-test', "$PWD\test-output\on-screen.png" -Wait -PassThru -NoNewWindow
+          if ($p.ExitCode -ne 0) { throw "overlay screenshot test failed ($($p.ExitCode))" }
+
+      - name: Upload test pictures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output
+          path: test-output
+
+      - name: Upload exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: FreeCrosshair
+          path: out/FreeCrosshair.exe
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ github.ref_name }}" out/FreeCrosshair.exe `
+            --title "Free Crosshair ${{ github.ref_name }}" `
+            --notes-file RELEASE_NOTES.md
